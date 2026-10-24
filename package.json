@@ -1,0 +1,43 @@
+{
+  "name": "sms-gateway-core",
+  "version": "1.0.0",
+  "description": "Production-grade SMS Gateway for Nigerian telecommunications (MTN, Airtel, Glo, 9mobile)",
+  "main": "smpp-core/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/smpp-core/index.js",
+    "dev": "ts-node smpp-core/index.ts",
+    "lint": "eslint smpp-core/**/*.ts api-backend/**/*.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.0",
+    "@fastify/jwt": "^10.1.0",
+    "@fastify/multipart": "^8.3.0",
+    "csv-parse": "^5.5.0",
+    "dotenv": "^16.4.0",
+    "fastify": "^5.9.0",
+    "formidable": "^3.5.1",
+    "ioredis": "^5.4.1",
+    "kafkajs": "^2.2.4",
+    "knex": "^3.1.0",
+    "nanoid": "^3.3.7",
+    "otplib": "^12.0.1",
+    "pg": "^8.12.0",
+    "pino": "^9.2.0",
+    "qrcode": "^1.5.3",
+    "smpp": "^0.6.0-rc.4",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/pg": "^8.11.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0"
+  }
+}

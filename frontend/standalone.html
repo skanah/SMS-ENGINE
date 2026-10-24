@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMS Gateway - Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #0f172a; color: #fff; min-height: 100vh; }
+    .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .card { background: #1f2937; border-radius: 8px; padding: 20px; margin-bottom: 16px; border: 1px solid #374151; }
+    label { display: block; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #374151; background: #111827; color: #fff; font-size: 14px; outline: none; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { border-color: #3b82f6; }
+    textarea { resize: vertical; }
+    .hint { color: #6b7280; font-size: 11px; margin-top: 4px; }
+    .row { display: flex; gap: 12px; }
+    .row > * { flex: 1; }
+    .chars { display: flex; justify-content: space-between; color: #6b7280; font-size: 11px; margin-top: 4px; }
+    .btn { width: 100%; padding: 12px 24px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #2563eb; }
+    .btn:disabled { background: #374151; cursor: not-allowed; }
+    .btn-success { background: #22c55e; }
+    .btn-success:hover { background: #16a34a; }
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+    .alert-success { background: #065f46; border: 1px solid #22c55e; color: #a7f3d0; }
+    .alert-error { background: #7f1d1d; border: 1px solid #dc2626; color: #fca5a5; }
+    .nav { display: flex; gap: 8px; margin-bottom: 20px; }
+    .nav-btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #374151; background: transparent; color: #9ca3af; cursor: pointer; font-size: 13px; }
+    .nav-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .nav-btn:hover { border-color: #3b82f6; color: #fff; }
+    .balance-badge { background: #065f46; border: 1px solid #22c55e; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #a7f3d0; font-size: 14px; }
+    .metric-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .metric { background: #1f2937; border-radius: 8px; padding: 14px; flex: 1; min-width: 130px; }
+    .metric-label { color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .error-banner { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #fca5a5; font-size: 14px; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #374151; transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background: #22c55e; }
+    input:checked + .slider:before { transform: translateX(20px); }
+    .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { color: #9ca3af; font-size: 11px; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid #374151; }
+    td { padding: 8px 12px; border-bottom: 1px solid #374151; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SMS Gateway</h1>
+    <p class="subtitle">Nigerian Telecom SMS Engine — Test Console</p>
+
+    <div class="nav">
+      <button class="nav-btn active" id="tabSend" onclick="showTab('send')">📨 Send SMS</button>
+      <button class="nav-btn" id="tabDashboard" onclick="showTab('dashboard')">📊 Dashboard</button>
+    </div>
+
+    <!-- ===== SEND SMS TAB ===== -->
+    <div id="sendTab">
+      <div id="balanceDisplay" class="balance-badge" style="display:none"></div>
+      <div id="resultDisplay" style="display:none"></div>
+
+      <div class="card">
+        <form id="smsForm" onsubmit="sendSms(event)">
+          <div style="margin-bottom:14px">
+            <label>Sender ID</label>
+            <input type="text" id="sender" placeholder="e.g. SMSAlert" maxlength="11" value="SMSAlert" required>
+            <div class="hint">Max 11 alphanumeric characters</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label>Recipient MSISDN</label>
+            <input type="text" id="recipient" placeholder="e.g. 2348031234567" value="2348030000000" required>
+            <div class="hint">E.164 format without leading +</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label>Message</label>
+            <textarea id="message" placeholder="Type your message here..." maxlength="5000" rows="4" required oninput="updateChars()">Hello, this is a test SMS from the gateway.</textarea>
+            <div class="chars">
+              <span id="charCount">0 chars</span>
+              <span id="segCount">1 segment · ~150 credits</span>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom:14px">
+            <div>
+              <label>Priority</label>
+              <select id="priority">
+                <option value="bulk">Bulk</option>
+                <option value="transactional">Transactional</option>
+                <option value="otp">OTP</option>
+              </select>
+            </div>
+            <div>
+              <label>Encoding</label>
+              <select id="encoding">
+                <option value="auto">Auto-detect</option>
+                <option value="gsm7">GSM 7-bit</option>
+                <option value="ucs2">UCS-2 (Unicode)</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn" id="sendBtn">Send SMS (~150 credits)</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD TAB ===== -->
+    <div id="dashboardTab" style="display:none">
+      <div id="dashError" class="error-banner" style="display:none"></div>
+      <div class="metric-grid" id="metricCards"></div>
+      <div id="operatorPanels"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8081';
+
+    // ─── Tabs ───────────────────────────────────────────────────────────────
+    function showTab(tab) {
+      document.getElementById('sendTab').style.display = tab === 'send' ? 'block' : 'none';
+      document.getElementById('dashboardTab').style.display = tab === 'dashboard' ? 'block' : 'none';
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+      if (tab === 'dashboard') fetchDashboard();
+    }
+
+    // ─── Send SMS ──────────────────────────────────────────────────────────
+    function updateChars() {
+      const msg = document.getElementById('message').value;
+      const enc = document.getElementById('encoding').value;
+      const isUcs2 = enc === 'ucs2';
+      const single = isUcs2 ? 70 : 160;
+      const concat = isUcs2 ? 67 : 153;
+      const limit = msg.length > single ? concat : single;
+      const segments = Math.ceil(msg.length / limit) || 1;
+      const cost = (isUcs2 ? 150 : 100) * segments + 50;
+      document.getElementById('charCount').textContent = msg.length + ' chars';
+      document.getElementById('segCount').textContent = segments + ' segment' + (segments>1?'s':'') + ' · ~' + cost + ' credits';
+      document.getElementById('sendBtn').textContent = 'Send SMS (~' + cost + ' credits)';
+    }
+    document.getElementById('message').addEventListener('input', updateChars);
+    document.getElementById('encoding').addEventListener('change', updateChars);
+    updateChars();
+
+    async function sendSms(e) {
+      e.preventDefault();
+      const btn = document.getElementById('sendBtn');
+      const resultEl = document.getElementById('resultDisplay');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      resultEl.style.display = 'none';
+
+      try {
+        const body = {
+          sender: document.getElementById('sender').value,
+          recipient: document.getElementById('recipient').value,
+          message: document.getElementById('message').value,
+          priority: document.getElementById('priority').value,
+          encoding: document.getElementById('encoding').value,
+        };
+        const resp = await fetch(API + '/api/v1/sms/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+          resultEl.className = 'alert alert-success';
+          resultEl.innerHTML = '✓ Message queued! <b>ID:</b> ' + data.messageId +
+            ' · <b>Cost:</b> ' + data.cost + ' credits' +
+            (data.operator ? ' · <b>Operator:</b> ' + data.operator : '') +
+            (data.dndAction ? ' · <b>DND:</b> ' + data.dndAction : '');
+          resultEl.style.display = 'block';
+        } else {
+          resultEl.className = 'alert alert-error';
+          resultEl.innerHTML = '✗ Failed: ' + (data.error || 'Unknown error');
+          resultEl.style.display = 'block';
+        }
+      } catch (err) {
+        resultEl.className = 'alert alert-error';
+        resultEl.innerHTML = '✗ Network error: ' + err.message;
+        resultEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send SMS';
+        updateChars();
+      }
+    }
+
+    // ─── Dashboard ─────────────────────────────────────────────────────────
+    async function fetchDashboard() {
+      const errEl = document.getElementById('dashError');
+      try {
+        const [healthResp, routesResp] = await Promise.all([
+          fetch(API + '/api/v1/admin/health'),
+          fetch(API + '/api/v1/admin/routes'),
+        ]);
+        if (!healthResp.ok || !routesResp.ok) throw new Error('Failed to fetch');
+
+        const health = (await healthResp.json()).data;
+        const routes = (await routesResp.json()).data || [];
+
+        errEl.style.display = 'none';
+
+        // Metrics
+        const metrics = document.getElementById('metricCards');
+        const uptime = s => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), se=Math.floor(s%60); return h+'h '+m+'m '+se+'s'; };
+        metrics.innerHTML = `
+          <div class="metric"><div class="metric-label">Sessions</div>
+            <div class="metric-value" style="color:#60a5fa">${health.sessions.bound}/${health.sessions.total}</div>
+            <div style="color:#6b7280;font-size:11px;margin-top:2px">${health.sessions.openCircuits} circuits open</div></div>
+          <div class="metric"><div class="metric-label">Submitted</div>
+            <div class="metric-value" style="color:#f59e0b">${(health.throughput.submitted || 0).toLocaleString()}</div></div>
+          <div class="metric"><div class="metric-label">Delivered</div>
+            <div class="metric-value" style="color:#22c55e">${(health.throughput.delivered || 0).toLocaleString()}</div>
+            <div style="color:#6b7280;font-size:11px;margin-top:2px">Rate: ${health.throughput.deliveryRate || '0%'}</div></div>
+          <div class="metric"><div class="metric-label">Failed</div>
+            <div class="metric-value" style="color:#ef4444">${(health.throughput.failed || 0).toLocaleString()}</div></div>
+          <div class="metric"><div class="metric-label">Uptime</div>
+            <div class="metric-value" style="color:#a78bfa">${uptime(health.uptime)}</div></div>
+        `;
+
+        // Operator panels
+        const panels = document.getElementById('operatorPanels');
+        if (routes.length === 0) {
+          panels.innerHTML = '<div class="card" style="text-align:center;color:#6b7280;border:1px dashed #374151">No route data available. Is the SMPP engine running?</div>';
+        } else {
+          panels.innerHTML = routes.map(r => {
+            const rate = r.totalSubmitted > 0 ? ((r.totalDelivered / r.totalSubmitted) * 100).toFixed(1) : '0.0';
+            const statusColor = s => { switch(s) { case 'bound_trx': return '#22c55e'; case 'connecting': return '#f59e0b'; case 'disconnected': return '#ef4444'; default: return '#6b7280'; }};
+            const circuitColor = s => { switch(s) { case 'closed': return '#22c55e'; case 'half_open': return '#f59e0b'; case 'open': return '#ef4444'; default: return '#6b7280'; }};
+            return '<div class="card" style="padding:0;overflow:hidden">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1f2937;border-bottom:1px solid #374151">' +
+              '<h3 style="margin:0;font-size:16px;font-weight:600">' + r.operator.toUpperCase() + '</h3>' +
+              '<div style="display:flex;gap:16px;font-size:13px">' +
+              '<span style="color:#22c55e">✓ ' + (r.totalDelivered || 0).toLocaleString() + '</span>' +
+              '<span style="color:#ef4444">✗ ' + (r.totalFailed || 0).toLocaleString() + '</span>' +
+              '<span style="color:#f59e0b">📨 ' + (r.totalSubmitted || 0).toLocaleString() + '</span>' +
+              '<span style="color:#60a5fa">📊 ' + rate + '%</span></div></div>' +
+              '<div style="overflow-x:auto"><table><thead><tr>' +
+              '<th>Session</th><th>State</th><th>Circuit</th><th>Avg Resp</th><th>Window</th></tr></thead><tbody>' +
+              (r.sessions || []).map(s => '<tr>' +
+                '<td>' + s.sessionId + '</td>' +
+                '<td><span class="status-dot" style="background:' + statusColor(s.state) + '"></span>' + s.state + '</td>' +
+                '<td><span class="status-dot" style="background:' + circuitColor(s.circuitState) + '"></span>' + (s.circuitState || '—') + '</td>' +
+                '<td>' + (s.avgResponseTimeMs || 0).toFixed(0) + 'ms</td>' +
+                '<td>' + (s.currentWindowUsage || 0) + '</td></tr>'
+              ).join('') + '</tbody></table></div></div>';
+          }).join('');
+        }
+      } catch (err) {
+        errEl.textContent = '⚠ Connection error: ' + err.message;
+        errEl.style.display = 'block';
+        document.getElementById('metricCards').innerHTML = '';
+        document.getElementById('operatorPanels').innerHTML = '';
+      }
+    }
+
+    // Auto-refresh dashboard every 5s
+    setInterval(() => {
+      if (document.getElementById('dashboardTab').style.display !== 'none') fetchDashboard();
+    }, 5000);
+  </script>
+</body>
+</html>
